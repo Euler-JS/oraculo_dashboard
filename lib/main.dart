@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oraculo/screens/dashboard_screen.dart';
+import 'package:oraculo/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,14 +21,6 @@ class MyApp extends StatelessWidget {
           secondary: Color(0xFFFFFFFF),
           surface: Color(0xFFF5F5F5),
         ),
-        fontFamily: 'Segoe UI',
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-          headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          headlineSmall: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          bodyLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-          bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF000000),
@@ -41,7 +33,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const DashboardScreen(),
+      home: const LoginScreen(),
     );
   }
 }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../services/attendance_service.dart';
+import '../models/employee.dart';
+import '../models/attendance.dart';
+import 'attendance_table.dart';
 
-class MainContent extends StatelessWidget {
+class MainContent extends StatefulWidget {
   final String activePage;
 
   const MainContent({
@@ -9,8 +14,76 @@ class MainContent extends StatelessWidget {
   });
 
   @override
+  State<MainContent> createState() => _MainContentState();
+}
+
+class _MainContentState extends State<MainContent> {
+  final AttendanceService _attendanceService = AttendanceService();
+
+  List<Employee> _employees = [];
+  Map<String, List<Attendance>> _attendanceData = {};
+  DateTimeRange _dateRange = DateTimeRange(
+    start: DateTime.now().subtract(const Duration(days: 7)),
+    end: DateTime.now(),
+  );
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void didUpdateWidget(MainContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.activePage != widget.activePage) {
+      _loadData();
+    }
+  }
+
+  Future<void> _loadData() async {
+    if (widget.activePage != 'attendance') return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Load employees and attendance data in parallel
+      final employeesFuture = _attendanceService.getEmployees();
+      final attendanceFuture = _attendanceService.getAttendanceData(
+        startDate: _dateRange.start,
+        endDate: _dateRange.end,
+      );
+
+      final results = await Future.wait([employeesFuture, attendanceFuture]);
+
+      setState(() {
+        _employees = results[0] as List<Employee>;
+        _attendanceData = results[1] as Map<String, List<Attendance>>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao carregar dados: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _updateDateRange(DateTimeRange newRange) {
+    setState(() {
+      _dateRange = newRange;
+    });
+    _loadData();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    switch (activePage) {
+    switch (widget.activePage) {
       case 'dashboard':
         return _buildDashboardContent();
       case 'students':
@@ -45,61 +118,87 @@ class MainContent extends StatelessWidget {
   }
 
   Widget _buildAttendanceContent() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadData,
+              child: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date Range Selector and Month Selector
+          // Date Range Selector
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () async {
+                  final picked = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                    initialDateRange: _dateRange,
+                  );
+                  if (picked != null) {
+                    _updateDateRange(picked);
+                  }
+                },
                 icon: const Icon(Icons.calendar_today),
-                label: const Text('21 Sep - 29 Sep 2024'),
+                label: Text(
+                  '${DateFormat('dd MMM').format(_dateRange.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange.end)}',
+                ),
               ),
               const SizedBox(width: 16),
+              // Month selector (optional - could be removed or enhanced)
               DropdownButton<String>(
-                value: 'September',
+                value: DateFormat('MMMM').format(_dateRange.start),
                 items: [
                   'January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September', 'October', 'November', 'December'
                 ].map((month) => DropdownMenuItem(value: month, child: Text(month))).toList(),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  // Could implement month navigation here
+                },
               ),
             ],
           ),
           const SizedBox(height: 16),
-          // Attendance Stats
+
+          // Attendance Stats (calculated from real data)
           Row(
-            children: [
-              _buildStat('Holiday', 0, Colors.grey.shade300, Icons.calendar_today),
-              const SizedBox(width: 16),
-              _buildStat('On time 82%', 82, const Color(0xFF2196F3), Icons.check),
-              const SizedBox(width: 16),
-              _buildStat('Late 10%', 10, const Color(0xFFFFC107), Icons.access_time),
-              const SizedBox(width: 16),
-              _buildStat('Absent 8%', 8, const Color(0xFFF44336), Icons.close),
-            ],
+            children: _buildAttendanceStats(),
           ),
           const SizedBox(height: 16),
-          // Attendance Table
+
+          // Attendance Table with real data
           Expanded(
-            child: SingleChildScrollView(
-              child: DataTable(
-                columns: [
-                  const DataColumn(label: Text('Select')),
-                  const DataColumn(label: Text('Student Profile')),
-                  const DataColumn(label: Text('23\nMon')),
-                  const DataColumn(label: Text('24\nTue')),
-                  const DataColumn(label: Text('25\nWed')),
-                  const DataColumn(label: Text('26\nThu')),
-                  const DataColumn(label: Text('27\nFri')),
-                  const DataColumn(label: Text('28\nSat')),
-                  const DataColumn(label: Text('29\nSun')),
-                ],
-                rows: _buildRows(),
-              ),
+            child: AttendanceTable(
+              employees: _employees,
+              attendanceData: _attendanceData,
+              dateRange: _dateRange,
             ),
           ),
         ],
@@ -137,6 +236,59 @@ class MainContent extends StatelessWidget {
     );
   }
 
+  List<Widget> _buildAttendanceStats() {
+    if (_employees.isEmpty) {
+      return [_buildStat('Sem dados', 0, Colors.grey, Icons.info)];
+    }
+
+    int totalRecords = 0;
+    int onTimeCount = 0;
+    int lateCount = 0;
+    int absentCount = 0;
+    int justifiedCount = 0;
+
+    // Calculate stats from real data
+    for (final employee in _employees) {
+      final employeeAttendance = _attendanceData[employee.id] ?? [];
+      for (final attendance in employeeAttendance) {
+        totalRecords++;
+        switch (attendance.status) {
+          case 'Presente':
+            onTimeCount++;
+            break;
+          case 'Atrasado':
+            lateCount++;
+            break;
+          case 'Ausente':
+            absentCount++;
+            break;
+          case 'Justificado':
+            justifiedCount++;
+            break;
+        }
+      }
+    }
+
+    if (totalRecords == 0) {
+      return [_buildStat('Sem registros', 0, Colors.grey, Icons.info)];
+    }
+
+    final onTimePercent = ((onTimeCount / totalRecords) * 100).round();
+    final latePercent = ((lateCount / totalRecords) * 100).round();
+    final absentPercent = ((absentCount / totalRecords) * 100).round();
+    final justifiedPercent = ((justifiedCount / totalRecords) * 100).round();
+
+    return [
+      _buildStat('Presente ${onTimePercent}%', onTimePercent, const Color(0xFF4CAF50), Icons.check),
+      const SizedBox(width: 16),
+      _buildStat('Atrasado ${latePercent}%', latePercent, const Color(0xFFFFC107), Icons.access_time),
+      const SizedBox(width: 16),
+      _buildStat('Ausente ${absentPercent}%', absentPercent, const Color(0xFFF44336), Icons.close),
+      const SizedBox(width: 16),
+      _buildStat('Justificado ${justifiedPercent}%', justifiedPercent, const Color(0xFF2196F3), Icons.info),
+    ];
+  }
+
   Widget _buildStat(String label, int percentage, Color color, IconData icon) {
     return Expanded(
       child: Container(
@@ -149,90 +301,12 @@ class MainContent extends StatelessWidget {
           children: [
             Icon(icon, color: color),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  List<DataRow> _buildRows() {
-    // Sample data from schema
-    final students = [
-      {'name': 'Maria Adams', 'avatar': 'maria-adams-avatar.jpg'},
-      {'name': 'Robin Logan', 'avatar': 'robin-logan-avatar.jpg'},
-      {'name': 'Cruz French', 'avatar': 'cruz-french-avatar.jpg'},
-      {'name': 'Maria Adams', 'avatar': 'maria-adams-avatar.jpg'},
-    ];
-
-    final attendanceData = [
-      ['on-time', 'on-time', 'holiday', 'on-time', 'on-time', 'on-time', 'on-time'],
-      ['on-time', 'absent', 'on-time', 'on-time', 'on-time', 'on-time', 'on-time'],
-      ['on-time', 'on-time', 'on-time', 'on-time', 'on-time', 'on-time', 'on-time'],
-      ['on-time', 'on-time', 'late', 'on-time', 'on-time', 'on-time', 'on-time'],
-    ];
-
-    return List.generate(students.length, (index) {
-      final student = students[index];
-      final attendance = attendanceData[index];
-      return DataRow(
-        cells: [
-          DataCell(Checkbox(value: false, onChanged: (value) {})),
-          DataCell(Row(
-            children: [
-              const CircleAvatar(child: Icon(Icons.person)),
-              const SizedBox(width: 8),
-              Text(student['name']!),
-            ],
-          )),
-          ...attendance.map((status) => DataCell(_buildAttendanceCell(status))),
-        ],
-      );
-    });
-  }
-
-  Widget _buildAttendanceCell(String status) {
-    Color bgColor;
-    Color textColor;
-    String label;
-
-    switch (status) {
-      case 'on-time':
-        bgColor = const Color(0xFFE8F5E9);
-        textColor = const Color(0xFF2E7D32);
-        label = 'On time';
-        break;
-      case 'late':
-        bgColor = const Color(0xFFFFF3E0);
-        textColor = const Color(0xFFE65100);
-        label = 'Late';
-        break;
-      case 'absent':
-        bgColor = const Color(0xFFFFEBEE);
-        textColor = const Color(0xFFC62828);
-        label = 'Absent';
-        break;
-      case 'holiday':
-        bgColor = const Color(0xFFF5F5F5);
-        textColor = const Color(0xFF666666);
-        label = 'Holiday';
-        break;
-      default:
-        bgColor = Colors.white;
-        textColor = Colors.black;
-        label = '';
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: textColor, fontSize: 10),
-        textAlign: TextAlign.center,
       ),
     );
   }
