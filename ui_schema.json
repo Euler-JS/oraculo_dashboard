@@ -1,0 +1,578 @@
+{
+  "application": {
+    "name": "Scholarly",
+    "theme": {
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFFFFF",
+      "accentColors": {
+        "success": "#4CAF50",
+        "warning": "#FFC107",
+        "danger": "#F44336",
+        "info": "#2196F3"
+      }
+    }
+  },
+  "layout": {
+    "type": "sidebar-main-content",
+    "sidebar": {
+      "width": "250px",
+      "backgroundColor": "#F5F5F5",
+      "components": [
+        {
+          "id": "logo",
+          "type": "logo",
+          "label": "Scholarly",
+          "icon": "scholarly-icon"
+        },
+        {
+          "id": "main-menu",
+          "type": "menu",
+          "title": "Main Menu",
+          "items": [
+            {
+              "id": "dashboard",
+              "label": "Dashboard",
+              "icon": "grid",
+              "route": "/dashboard",
+              "active": false
+            },
+            {
+              "id": "students",
+              "label": "Students",
+              "icon": "users",
+              "route": "/students",
+              "active": false
+            },
+            {
+              "id": "attendance",
+              "label": "Attendance",
+              "icon": "check-circle",
+              "route": "/attendance",
+              "active": true
+            },
+            {
+              "id": "report",
+              "label": "Report",
+              "icon": "bar-chart",
+              "route": "/report",
+              "badge": "+",
+              "active": false
+            },
+            {
+              "id": "announcements",
+              "label": "Announcements",
+              "icon": "bell",
+              "route": "/announcements",
+              "badge": "+",
+              "active": false
+            }
+          ]
+        },
+        {
+          "id": "quick-actions",
+          "type": "card",
+          "title": "Quick Add New Students",
+          "content": {
+            "icon": "users-group",
+            "description": "Three cartoon students illustration",
+            "button": {
+              "id": "add-student-btn",
+              "label": "Add Student",
+              "icon": "plus",
+              "backgroundColor": "#000000",
+              "textColor": "#FFFFFF",
+              "action": "openAddStudentModal"
+            }
+          }
+        },
+        {
+          "id": "help-center",
+          "type": "link",
+          "label": "Help Center",
+          "icon": "help-circle",
+          "route": "/help"
+        },
+        {
+          "id": "settings",
+          "type": "link",
+          "label": "Settings",
+          "icon": "settings",
+          "route": "/settings"
+        },
+        {
+          "id": "sign-out",
+          "type": "link",
+          "label": "Sign Out",
+          "icon": "sign-out",
+          "action": "logout"
+        }
+      ]
+    },
+    "header": {
+      "backgroundColor": "#FFFFFF",
+      "components": [
+        {
+          "id": "page-title",
+          "type": "title",
+          "text": "Attendance",
+          "subtitle": "Manage attendance records"
+        },
+        {
+          "id": "search-box",
+          "type": "search",
+          "placeholder": "Search here...",
+          "icon": "search"
+        },
+        {
+          "id": "filter-icon",
+          "type": "icon-button",
+          "icon": "filter",
+          "action": "toggleFilter"
+        },
+        {
+          "id": "refresh-icon",
+          "type": "icon-button",
+          "icon": "refresh",
+          "action": "refresh"
+        },
+        {
+          "id": "notifications-icon",
+          "type": "icon-button",
+          "icon": "bell",
+          "badge": "0",
+          "action": "openNotifications"
+        },
+        {
+          "id": "user-profile",
+          "type": "user-menu",
+          "userName": "Mithun Ray",
+          "userRole": "Student",
+          "userAvatar": "mithun-ray-avatar.jpg",
+          "dropdown": [
+            {
+              "label": "Profile",
+              "action": "openProfile"
+            },
+            {
+              "label": "Settings",
+              "action": "openSettings"
+            },
+            {
+              "label": "Logout",
+              "action": "logout"
+            }
+          ]
+        }
+      ]
+    },
+    "mainContent": {
+      "type": "attendance-view",
+      "components": [
+        {
+          "id": "date-range-selector",
+          "type": "date-picker",
+          "format": "DD MMM - DD MMM YYYY",
+          "defaultValue": "21 Sep - 29 Sep 2024",
+          "icon": "calendar"
+        },
+        {
+          "id": "month-selector",
+          "type": "dropdown",
+          "label": "September",
+          "options": [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+          ]
+        },
+        {
+          "id": "attendance-stats",
+          "type": "stats-bar",
+          "stats": [
+            {
+              "label": "Holiday",
+              "percentage": 0,
+              "color": "#E0E0E0",
+              "icon": "calendar"
+            },
+            {
+              "label": "On time 82%",
+              "percentage": 82,
+              "color": "#2196F3",
+              "icon": "check"
+            },
+            {
+              "label": "Late 10%",
+              "percentage": 10,
+              "color": "#FFC107",
+              "icon": "clock"
+            },
+            {
+              "label": "Absent 8%",
+              "percentage": 8,
+              "color": "#F44336",
+              "icon": "x"
+            }
+          ]
+        },
+        {
+          "id": "attendance-table",
+          "type": "data-table",
+          "columns": [
+            {
+              "id": "select",
+              "type": "checkbox",
+              "width": "50px"
+            },
+            {
+              "id": "student-profile",
+              "type": "profile",
+              "label": "Student Profile",
+              "width": "200px",
+              "sortable": true
+            },
+            {
+              "id": "date-23",
+              "type": "date-column",
+              "date": "23",
+              "day": "Monday",
+              "width": "80px"
+            },
+            {
+              "id": "date-24",
+              "type": "date-column",
+              "date": "24",
+              "day": "Tuesday",
+              "width": "80px"
+            },
+            {
+              "id": "date-25",
+              "type": "date-column",
+              "date": "25",
+              "day": "Wednesday",
+              "width": "80px"
+            },
+            {
+              "id": "date-26",
+              "type": "date-column",
+              "date": "26",
+              "day": "Thursday",
+              "width": "80px"
+            },
+            {
+              "id": "date-27",
+              "type": "date-column",
+              "date": "27",
+              "day": "Friday",
+              "width": "80px"
+            },
+            {
+              "id": "date-28",
+              "type": "date-column",
+              "date": "28",
+              "day": "Saturday",
+              "width": "80px"
+            },
+            {
+              "id": "date-29",
+              "type": "date-column",
+              "date": "29",
+              "day": "Sunday",
+              "width": "80px"
+            }
+          ],
+          "rows": [
+            {
+              "id": "row-1",
+              "student": {
+                "name": "Maria Adams",
+                "avatar": "maria-adams-avatar.jpg"
+              },
+              "attendance": [
+                {
+                  "date": "23",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                },
+                {
+                  "date": "24",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                },
+                {
+                  "date": "25",
+                  "status": "holiday",
+                  "label": "Holiday",
+                  "backgroundColor": "#F5F5F5",
+                  "textColor": "#666666"
+                },
+                {
+                  "date": "26",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                },
+                {
+                  "date": "27",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                },
+                {
+                  "date": "28",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                },
+                {
+                  "date": "29",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9",
+                  "textColor": "#2E7D32"
+                }
+              ]
+            },
+            {
+              "id": "row-2",
+              "student": {
+                "name": "Robin Logan",
+                "avatar": "robin-logan-avatar.jpg"
+              },
+              "attendance": [
+                {
+                  "date": "23",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "24",
+                  "status": "absent",
+                  "label": "Absent (Health Problem)",
+                  "backgroundColor": "#FFEBEE",
+                  "textColor": "#C62828"
+                },
+                {
+                  "date": "25",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "26",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "27",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "28",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "29",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                }
+              ]
+            },
+            {
+              "id": "row-3",
+              "student": {
+                "name": "Cruz French",
+                "avatar": "cruz-french-avatar.jpg"
+              },
+              "attendance": [
+                {
+                  "date": "23",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "24",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "25",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "26",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "27",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "28",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "29",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                }
+              ]
+            },
+            {
+              "id": "row-4",
+              "student": {
+                "name": "Maria Adams",
+                "avatar": "maria-adams-avatar.jpg"
+              },
+              "attendance": [
+                {
+                  "date": "23",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "24",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "25",
+                  "status": "late",
+                  "label": "Late (Plate Jam)",
+                  "backgroundColor": "#FFF3E0",
+                  "textColor": "#E65100"
+                },
+                {
+                  "date": "26",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "27",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "28",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                },
+                {
+                  "date": "29",
+                  "status": "on-time",
+                  "label": "On time",
+                  "backgroundColor": "#E8F5E9"
+                }
+              ]
+            }
+          ],
+          "pagination": {
+            "currentPage": 1,
+            "totalPages": 5,
+            "itemsPerPage": 10,
+            "totalItems": 16
+          }
+        }
+      ]
+    }
+  },
+  "colors": {
+    "statusColors": {
+      "on-time": {
+        "backgroundColor": "#E8F5E9",
+        "textColor": "#2E7D32",
+        "borderColor": "#4CAF50"
+      },
+      "late": {
+        "backgroundColor": "#FFF3E0",
+        "textColor": "#E65100",
+        "borderColor": "#FFC107"
+      },
+      "absent": {
+        "backgroundColor": "#FFEBEE",
+        "textColor": "#C62828",
+        "borderColor": "#F44336"
+      },
+      "holiday": {
+        "backgroundColor": "#F5F5F5",
+        "textColor": "#666666",
+        "borderColor": "#CCCCCC"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+    "sizes": {
+      "heading1": "24px",
+      "heading2": "20px",
+      "heading3": "16px",
+      "body": "14px",
+      "small": "12px"
+    },
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": {
+        "backgroundColor": "#000000",
+        "textColor": "#FFFFFF",
+        "padding": "8px 16px",
+        "borderRadius": "20px",
+        "fontSize": "14px"
+      },
+      "secondary": {
+        "backgroundColor": "#FFFFFF",
+        "textColor": "#000000",
+        "border": "1px solid #E0E0E0",
+        "padding": "8px 16px",
+        "borderRadius": "4px",
+        "fontSize": "14px"
+      }
+    }
+  }
+}
