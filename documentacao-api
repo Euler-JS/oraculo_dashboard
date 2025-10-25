@@ -1,0 +1,644 @@
+# Documentação da API de Controle de Ponto
+
+Este documento contém informações detalhadas sobre todas as rotas da API, incluindo payloads de requisição e exemplos de respostas.
+
+## Sumário
+- [1. Funcionários (Employees)](#1-funcionários-employees)
+- [2. Registro de Ponto (Attendance)](#2-registro-de-ponto-attendance)
+- [3. Horário de Trabalho (Work Schedule)](#3-horário-de-trabalho-work-schedule)
+- [4. Departamentos (Departments)](#4-departamentos-departments)
+
+---
+
+## 1. Funcionários (Employees)
+
+### 1.1. Listar todos os funcionários
+
+**Endpoint:** `GET /api/employees`
+
+**Descrição:** Retorna uma lista de todos os funcionários ordenados por nome.
+
+**Resposta de Sucesso (200 OK):**
+```json
+[
+  {
+    "id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+    "name": "João Muchunja",
+    "position": "Programador",
+    "department": "Informatica",
+    "internal_code": "AEM753",
+    "qr_code": "1626ac3af77bc661090f24b0399500f689da77c6df122d0fbd5d16f3c72ec3d1",
+    "created_at": "2025-05-15T13:49:23.603056+00:00",
+    "synced": null,
+    "cached_at": null
+  },
+  {
+    "id": "14adfa5e-5e5b-469f-af7e-f5c3843f4fe4",
+    "name": "José Jorge Nguiraze",
+    "position": "Programador",
+    "department": "Informatica",
+    "internal_code": "AEM114",
+    "qr_code": "ffa2713b1b206e89f0b9d60b4cd4bd1353537a88e31d78eb52e561e94d50ade5",
+    "created_at": "2025-05-15T13:47:46.722173+00:00",
+    "synced": null,
+    "cached_at": null
+  }
+]
+```
+
+### 1.2. Obter funcionário por ID
+
+**Endpoint:** `GET /api/employees/:id`
+
+**Parâmetros da URL:**
+- `id` (UUID): ID do funcionário
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+  "name": "João Muchunja",
+  "position": "Programador",
+  "department": "Informatica",
+  "internal_code": "AEM753",
+  "qr_code": "1626ac3af77bc661090f24b0399500f689da77c6df122d0fbd5d16f3c72ec3d1",
+  "created_at": "2025-05-15T13:49:23.603056+00:00",
+  "synced": null,
+  "cached_at": null
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Funcionário não encontrado"
+}
+```
+
+### 1.3. Obter funcionário por código interno
+
+**Endpoint:** `GET /api/employees/code/:code`
+
+**Parâmetros da URL:**
+- `code` (string): Código interno do funcionário (formato AEMXXX)
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+  "name": "João Muchunja",
+  "position": "Programador",
+  "department": "Informatica",
+  "internal_code": "AEM753",
+  "qr_code": "1626ac3af77bc661090f24b0399500f689da77c6df122d0fbd5d16f3c72ec3d1",
+  "created_at": "2025-05-15T13:49:23.603056+00:00",
+  "synced": null,
+  "cached_at": null
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Funcionário não encontrado"
+}
+```
+
+### 1.4. Criar funcionário
+
+**Endpoint:** `POST /api/employees`
+
+**Body (JSON):**
+```json
+{
+  "name": "Maria Silva",
+  "position": "Analista Administrativa",
+  "department": "Administracao",
+  "internal_code": "AEM999"  // Opcional - será gerado automaticamente se não for fornecido
+}
+```
+
+**Resposta de Sucesso (201 Created):**
+```json
+{
+  "message": "Funcionário criado com sucesso",
+  "employee": {
+    "id": "7c9e6285-3f18-4be2-91a5-cb9bd1db8bfb",
+    "name": "Maria Silva",
+    "position": "Analista Administrativa",
+    "department": "Administracao",
+    "internal_code": "AEM999",
+    "qr_code": "AEM999",
+    "created_at": "2025-10-25T14:23:45.123Z"
+  }
+}
+```
+
+**Resposta de Erro (400 Bad Request):**
+```json
+{
+  "message": "Nome, cargo e departamento são obrigatórios"
+}
+```
+
+### 1.5. Atualizar funcionário
+
+**Endpoint:** `PUT /api/employees/:id`
+
+**Parâmetros da URL:**
+- `id` (UUID): ID do funcionário
+
+**Body (JSON):**
+```json
+{
+  "name": "Maria Silva Atualizado",
+  "position": "Gerente Administrativa",
+  "department": "Administracao"
+}
+```
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Funcionário atualizado com sucesso",
+  "employee": {
+    "id": "7c9e6285-3f18-4be2-91a5-cb9bd1db8bfb",
+    "name": "Maria Silva Atualizado",
+    "position": "Gerente Administrativa",
+    "department": "Administracao",
+    "internal_code": "AEM999",
+    "qr_code": "AEM999",
+    "created_at": "2025-10-25T14:23:45.123Z",
+    "synced": null,
+    "cached_at": null
+  }
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Funcionário não encontrado"
+}
+```
+
+### 1.6. Excluir funcionário
+
+**Endpoint:** `DELETE /api/employees/:id`
+
+**Parâmetros da URL:**
+- `id` (UUID): ID do funcionário
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Funcionário excluído com sucesso"
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Funcionário não encontrado"
+}
+```
+
+---
+
+## 2. Registro de Ponto (Attendance)
+
+### 2.1. Listar registros de ponto
+
+**Endpoint:** `GET /api/attendance`
+
+**Query Parameters (opcionais):**
+- `employee_id` (UUID): Filtrar por ID do funcionário
+- `date` (YYYY-MM-DD): Filtrar por data específica
+- `start_date` (YYYY-MM-DD): Data inicial para filtro por período
+- `end_date` (YYYY-MM-DD): Data final para filtro por período
+
+**Resposta de Sucesso (200 OK):**
+```json
+[
+  {
+    "id": "f8a7d632-4e91-4a85-b34e-9e41b5e15a7c",
+    "employee_id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+    "date": "2025-10-25",
+    "check_in": "08:05",
+    "check_out": "17:30",
+    "late_minutes": 5,
+    "status": "Presente",
+    "observations": null,
+    "auth_method": "qr",
+    "created_at": "2025-10-25T08:05:23.603056+00:00",
+    "synced": null,
+    "cached_at": null,
+    "employee": {
+      "id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+      "name": "João Muchunja",
+      "internal_code": "AEM753"
+    }
+  },
+  {
+    "id": "d19f3a45-7c82-4b91-a67c-8e52f1d23b5a",
+    "employee_id": "14adfa5e-5e5b-469f-af7e-f5c3843f4fe4",
+    "date": "2025-10-25",
+    "check_in": "07:55",
+    "check_out": "17:15",
+    "late_minutes": 0,
+    "status": "Presente",
+    "observations": null,
+    "auth_method": "code",
+    "created_at": "2025-10-25T07:55:12.722173+00:00",
+    "synced": null,
+    "cached_at": null,
+    "employee": {
+      "id": "14adfa5e-5e5b-469f-af7e-f5c3843f4fe4",
+      "name": "José Jorge Nguiraze",
+      "internal_code": "AEM114"
+    }
+  }
+]
+```
+
+### 2.2. Registrar ponto (entrada/saída)
+
+**Endpoint:** `POST /api/attendance/register`
+
+**Body (JSON):**
+```json
+{
+  "employee_code": "AEM753",     // Ou "employee_id" com o UUID do funcionário
+  "auth_method": "qr",          // Opcional: "code", "qr", "face", "fingerprint"
+  "observations": "Reunião externa" // Opcional
+}
+```
+
+**Resposta de Sucesso - Entrada (201 Created):**
+```json
+{
+  "message": "Bom dia João Muchunja! Entrada registrada com sucesso às 08:05.",
+  "attendance": {
+    "id": "f8a7d632-4e91-4a85-b34e-9e41b5e15a7c",
+    "employee_id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+    "date": "2025-10-25",
+    "check_in": "08:05",
+    "late_minutes": 5,
+    "status": "Presente",
+    "observations": "Reunião externa",
+    "auth_method": "qr",
+    "created_at": "2025-10-25T08:05:23.603056+00:00"
+  }
+}
+```
+
+**Resposta de Sucesso - Saída (200 OK):**
+```json
+{
+  "message": "Até amanhã João Muchunja! Saída registrada com sucesso às 17:30.",
+  "attendance": {
+    "id": "f8a7d632-4e91-4a85-b34e-9e41b5e15a7c",
+    "employee_id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+    "date": "2025-10-25",
+    "check_in": "08:05",
+    "check_out": "17:30",
+    "late_minutes": 5,
+    "status": "Presente",
+    "observations": "Reunião externa",
+    "auth_method": "qr",
+    "created_at": "2025-10-25T08:05:23.603056+00:00"
+  }
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Funcionário não encontrado"
+}
+```
+
+**Resposta de Erro (400 Bad Request):**
+```json
+{
+  "message": "É necessário informar o ID ou código do funcionário"
+}
+```
+
+**Resposta de Erro - Dupla Marcação (400 Bad Request):**
+```json
+{
+  "message": "João Muchunja já registrou entrada e saída hoje."
+}
+```
+
+### 2.3. Atualizar registro de ponto
+
+**Endpoint:** `PUT /api/attendance/:id`
+
+**Parâmetros da URL:**
+- `id` (UUID): ID do registro de ponto
+
+**Body (JSON):**
+```json
+{
+  "check_in": "08:00",     // Opcional
+  "check_out": "17:00",    // Opcional
+  "status": "Justificado", // Opcional
+  "observations": "Atraso justificado por problemas no transporte" // Opcional
+}
+```
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Registro de ponto atualizado com sucesso",
+  "attendance": {
+    "id": "f8a7d632-4e91-4a85-b34e-9e41b5e15a7c",
+    "employee_id": "92568761-42ed-4c9f-bcab-d1376cc36e81",
+    "date": "2025-10-25",
+    "check_in": "08:00",
+    "check_out": "17:00",
+    "late_minutes": 0,
+    "status": "Justificado",
+    "observations": "Atraso justificado por problemas no transporte",
+    "auth_method": "qr",
+    "created_at": "2025-10-25T08:05:23.603056+00:00",
+    "synced": null,
+    "cached_at": null
+  }
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Registro de ponto não encontrado"
+}
+```
+
+### 2.4. Excluir registro de ponto
+
+**Endpoint:** `DELETE /api/attendance/:id`
+
+**Parâmetros da URL:**
+- `id` (UUID): ID do registro de ponto
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Registro de ponto excluído com sucesso"
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Registro de ponto não encontrado"
+}
+```
+
+---
+
+## 3. Horário de Trabalho (Work Schedule)
+
+### 3.1. Obter configuração de horário
+
+**Endpoint:** `GET /api/work-schedule`
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "id": "8e4a1f35-9c32-4e8b-b15d-0987654321ab",
+  "start_time": "08:00",
+  "end_time": "17:00",
+  "work_days": [1, 2, 3, 4, 5],
+  "late_tolerance": 15,
+  "daily_hours": 8.0,
+  "auto_checkout": false,
+  "require_location": false,
+  "created_at": "2025-10-01T10:00:00.000Z",
+  "synced": null,
+  "cached_at": null
+}
+```
+
+### 3.2. Atualizar configuração de horário
+
+**Endpoint:** `PUT /api/work-schedule`
+
+**Body (JSON):**
+```json
+{
+  "start_time": "09:00",
+  "end_time": "18:00",
+  "work_days": [1, 2, 3, 4, 5, 6],
+  "late_tolerance": 10,
+  "daily_hours": 8.5,
+  "auto_checkout": true,
+  "require_location": true
+}
+```
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Configuração de horário atualizada com sucesso",
+  "work_schedule": {
+    "id": "8e4a1f35-9c32-4e8b-b15d-0987654321ab",
+    "start_time": "09:00",
+    "end_time": "18:00",
+    "work_days": [1, 2, 3, 4, 5, 6],
+    "late_tolerance": 10,
+    "daily_hours": 8.5,
+    "auto_checkout": true,
+    "require_location": true,
+    "created_at": "2025-10-01T10:00:00.000Z",
+    "synced": null,
+    "cached_at": null
+  }
+}
+```
+
+**Resposta de Erro (400 Bad Request):**
+```json
+{
+  "message": "Formato de hora de início inválido. Use o formato HH:MM"
+}
+```
+
+---
+
+## 4. Departamentos (Departments)
+
+### 4.1. Listar todos os departamentos
+
+**Endpoint:** `GET /api/departments`
+
+**Resposta de Sucesso (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Administracao"
+  },
+  {
+    "id": 2,
+    "name": "Informatica"
+  },
+  {
+    "id": 3,
+    "name": "Costura"
+  },
+  {
+    "id": 4,
+    "name": "Seguranca"
+  }
+]
+```
+
+### 4.2. Obter departamento por ID
+
+**Endpoint:** `GET /api/departments/:id`
+
+**Parâmetros da URL:**
+- `id` (int): ID do departamento
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "id": 2,
+  "name": "Informatica"
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Departamento não encontrado"
+}
+```
+
+### 4.3. Criar departamento
+
+**Endpoint:** `POST /api/departments`
+
+**Body (JSON):**
+```json
+{
+  "name": "Recursos Humanos"
+}
+```
+
+**Resposta de Sucesso (201 Created):**
+```json
+{
+  "message": "Departamento criado com sucesso",
+  "department": {
+    "id": 5,
+    "name": "Recursos Humanos"
+  }
+}
+```
+
+**Resposta de Erro (400 Bad Request):**
+```json
+{
+  "message": "Nome do departamento é obrigatório"
+}
+```
+
+**Resposta de Erro - Departamento Duplicado (400 Bad Request):**
+```json
+{
+  "message": "Já existe um departamento com este nome"
+}
+```
+
+### 4.4. Atualizar departamento
+
+**Endpoint:** `PUT /api/departments/:id`
+
+**Parâmetros da URL:**
+- `id` (int): ID do departamento
+
+**Body (JSON):**
+```json
+{
+  "name": "Recursos Humanos Atualizado"
+}
+```
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Departamento atualizado com sucesso",
+  "department": {
+    "id": 5,
+    "name": "Recursos Humanos Atualizado"
+  }
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Departamento não encontrado"
+}
+```
+
+**Resposta de Erro - Nome Duplicado (400 Bad Request):**
+```json
+{
+  "message": "Já existe outro departamento com este nome"
+}
+```
+
+### 4.5. Excluir departamento
+
+**Endpoint:** `DELETE /api/departments/:id`
+
+**Parâmetros da URL:**
+- `id` (int): ID do departamento
+
+**Resposta de Sucesso (200 OK):**
+```json
+{
+  "message": "Departamento excluído com sucesso"
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+```json
+{
+  "message": "Departamento não encontrado"
+}
+```
+
+**Resposta de Erro - Departamento em Uso (400 Bad Request):**
+```json
+{
+  "message": "Não é possível excluir o departamento porque existem funcionários associados a ele"
+}
+```
+
+---
+
+## Códigos de Status HTTP
+
+- **200 OK**: Requisição bem-sucedida
+- **201 Created**: Recurso criado com sucesso
+- **400 Bad Request**: Parâmetros inválidos ou ausentes
+- **404 Not Found**: Recurso não encontrado
+- **500 Internal Server Error**: Erro no servidor
+
+---
+
+## Notas sobre Autenticação
+
+- **Operações públicas**: Registro de ponto e consultas básicas são permitidas sem autenticação
+- **Operações administrativas**: Em uma implementação futura, podem ser protegidas por JWT ou outro método de autenticação
+
+---
+
+Este documento será atualizado conforme novas funcionalidades forem adicionadas à API.
