@@ -34,7 +34,8 @@ class Sidebar extends StatelessWidget {
             child: ListView(
               children: [
                 _buildMenuItem('dashboard', 'Dashboard', Icons.grid_view, activePage == 'dashboard'),
-                _buildMenuItem('students', 'Students', Icons.people, activePage == 'students'),
+                _buildMenuItem('funcionarios', 'Funcionários', Icons.people, activePage == 'funcionarios'),
+                _buildMenuItem('add-funcionario', 'Adicionar Funcionário', Icons.person_add, activePage == 'add-funcionario'),
                 _buildMenuItem('attendance', 'Attendance', Icons.check_circle, activePage == 'attendance'),
                 _buildMenuItem('report', 'Report', Icons.bar_chart, activePage == 'report', badge: '+'),
                 _buildMenuItem('announcements', 'Announcements', Icons.notifications, activePage == 'announcements', badge: '+'),
@@ -52,16 +53,16 @@ class Sidebar extends StatelessWidget {
             child: Column(
               children: [
                 const Text(
-                  'Quick Add New Students',
+                  'Adicionar Novo Funcionário',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Icon(Icons.group, size: 48, color: Colors.grey),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
-                  onPressed: () => onMenuItemSelected('add-student'),
+                  onPressed: () => _showAddFuncionarioModal(context),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Student'),
+                  label: const Text('Adicionar Funcionário'),
                 ),
               ],
             ),
@@ -72,6 +73,58 @@ class Sidebar extends StatelessWidget {
           _buildLink('sign-out', 'Sign Out', Icons.logout),
         ],
       ),
+    );
+  }
+
+  void _showAddFuncionarioModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Novo Funcionário'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Nome Completo',
+                ),
+              ),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Cargo',
+                ),
+              ),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Departamento',
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Administracao', child: Text('Administração')),
+                  DropdownMenuItem(value: 'Informatica', child: Text('Informática')),
+                  DropdownMenuItem(value: 'Costura', child: Text('Costura')),
+                  DropdownMenuItem(value: 'Biblioteca', child: Text('Biblioteca')),
+                  DropdownMenuItem(value: 'Seguranca', child: Text('Segurança')),
+                ],
+                onChanged: (value) {},
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('CANCELAR'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Adicionar lógica para salvar funcionário
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 

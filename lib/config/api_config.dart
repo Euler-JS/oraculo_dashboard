@@ -1,6 +1,7 @@
 class ApiConfig {
   // Base URL da API
-  static const String baseUrl = 'http://localhost:3000';
+  // static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://b2152bb6e6de.ngrok-free.app';
 
   // Timeout para conexões
   static const Duration connectionTimeout = Duration(seconds: 10);

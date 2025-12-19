@@ -36,7 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
       // Para demonstração, aceitar qualquer email/senha
       // Em produção, isso seria uma chamada real para a API
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/login'),
+        // Uri.parse('http://localhost:3000/api/auth/login'),
+        Uri.parse('https://b2152bb6e6de.ngrok-free.app/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text,

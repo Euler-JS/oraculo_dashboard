@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../services/attendance_service.dart';
 import '../models/employee.dart';
 import '../models/attendance.dart';
@@ -29,6 +31,15 @@ class _MainContentState extends State<MainContent> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // Form controllers for add employee
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _positionController = TextEditingController();
+  final _departmentController = TextEditingController();
+  final _internalCodeController = TextEditingController();
+  File? _selectedImage;
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +52,15 @@ class _MainContentState extends State<MainContent> {
     if (oldWidget.activePage != widget.activePage) {
       _loadData();
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _positionController.dispose();
+    _departmentController.dispose();
+    _internalCodeController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -81,13 +101,76 @@ class _MainContentState extends State<MainContent> {
     _loadData();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _submitEmployee() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecione uma imagem do rosto')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Create employee
+      final employee = await _attendanceService.createEmployee(
+        name: _nameController.text.trim(),
+        position: _positionController.text.trim(),
+        department: _departmentController.text.trim(),
+        internalCode: _internalCodeController.text.trim(),
+      );
+
+      // Register face
+      await _attendanceService.registerFace(employee.id, _selectedImage!);
+
+      // Clear form
+      _nameController.clear();
+      _positionController.clear();
+      _departmentController.clear();
+      _internalCodeController.clear();
+      setState(() {
+        _selectedImage = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Funcionário adicionado com sucesso!')),
+      );
+
+      // Reload employees list
+      _loadData();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao adicionar funcionário: $e')),
+      );
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (widget.activePage) {
       case 'dashboard':
         return _buildDashboardContent();
-      case 'students':
-        return _buildStudentsContent();
+      case 'funcionarios':
+        return _buildFuncionariosContent();
       case 'attendance':
         return _buildAttendanceContent();
       case 'report':
@@ -98,8 +181,8 @@ class _MainContentState extends State<MainContent> {
         return _buildHelpContent();
       case 'settings':
         return _buildSettingsContent();
-      case 'add-student':
-        return _buildAddStudentContent();
+      case 'add-funcionario':
+        return _buildAddFuncionarioContent();
       default:
         return _buildAttendanceContent();
     }
@@ -111,9 +194,58 @@ class _MainContentState extends State<MainContent> {
     );
   }
 
-  Widget _buildStudentsContent() {
-    return const Center(
-      child: Text('Students Management - List and manage students'),
+  Widget _buildFuncionariosContent() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadData,
+              child: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Funcionários cadastrados',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.separated(
+              itemCount: _employees.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (context, index) {
+                final employee = _employees[index];
+                return ListTile(
+                  leading: CircleAvatar(child: Text(employee.name.isNotEmpty ? employee.name[0] : '?')),
+                  title: Text(employee.name),
+                  subtitle: Text('${employee.position} • ${employee.department}'),
+                  trailing: Text(employee.internalCode),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -230,9 +362,110 @@ class _MainContentState extends State<MainContent> {
     );
   }
 
-  Widget _buildAddStudentContent() {
-    return const Center(
-      child: Text('Add New Student Form'),
+  Widget _buildAddFuncionarioContent() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Adicionar Novo Funcionário',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Nome',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Nome é obrigatório';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _positionController,
+              decoration: const InputDecoration(
+                labelText: 'Cargo',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Cargo é obrigatório';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _departmentController,
+              decoration: const InputDecoration(
+                labelText: 'Departamento',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Departamento é obrigatório';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _internalCodeController,
+              decoration: const InputDecoration(
+                labelText: 'Código Interno',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Código interno é obrigatório';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Foto do Rosto (obrigatória para reconhecimento facial)',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.photo),
+                  label: const Text('Selecionar Imagem'),
+                ),
+                const SizedBox(width: 16),
+                if (_selectedImage != null)
+                  const Icon(Icons.check_circle, color: Colors.green),
+              ],
+            ),
+            if (_selectedImage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('Imagem selecionada: ${_selectedImage!.path.split('/').last}'),
+              ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _submitEmployee,
+                child: _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : const Text('Adicionar Funcionário'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

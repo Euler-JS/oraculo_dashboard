@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:http_parser/http_parser.dart';
 import '../config/api_config.dart';
 import '../models/employee.dart';
 import '../models/attendance.dart';
@@ -154,6 +156,68 @@ class AttendanceService {
     } catch (e) {
       print('Failed to register attendance: $e');
       throw Exception('Failed to register attendance: $e');
+    }
+  }
+
+  Future<Employee> createEmployee({
+    required String name,
+    required String position,
+    required String department,
+    required String internalCode,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.employees}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'position': position,
+          'department': department,
+          'internal_code': internalCode,
+        }),
+      ).timeout(ApiConfig.connectionTimeout);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Employee.fromJson(data);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to create employee');
+      }
+    } catch (e) {
+      print('Failed to create employee: $e');
+      throw Exception('Failed to create employee: $e');
+    }
+  }
+
+  Future<void> registerFace(String employeeId, File faceImage) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.employees}/$employeeId/register-face'),
+      );
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'faceImage',
+          faceImage.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
+
+      final response = await request.send().timeout(ApiConfig.connectionTimeout);
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        return;
+      } else {
+        final error = json.decode(responseBody);
+        throw Exception(error['message'] ?? 'Failed to register face');
+      }
+    } catch (e) {
+      print('Failed to register face: $e');
+      throw Exception('Failed to register face: $e');
     }
   }
 
